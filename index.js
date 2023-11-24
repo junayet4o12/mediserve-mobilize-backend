@@ -24,6 +24,7 @@ async function run() {
     try {
         const mediserveMobilize = client.db('mediserveMobilize')
         const campsCollection = mediserveMobilize.collection('medicalCamps')
+        const feedbackCollection = mediserveMobilize.collection('feedback')
         // campsCollection start 
         app.get('/camps', async (req, res) => {
             const result = await campsCollection.find().toArray();
@@ -40,10 +41,10 @@ async function run() {
         // campsCollection end
 
         // feedback start
-        // app.get('/feedback', async (req, res) => {
-        //     const result  = await feedbackCollection.find().toArray();
-        //     res.send(result)
-        // })
+        app.get('/feedback', async (req, res) => {
+            const result  = await feedbackCollection.find().sort({time: -1}).toArray();
+            res.send(result)
+        })
         // feedback end
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
