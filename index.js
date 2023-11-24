@@ -33,6 +33,10 @@ async function run() {
             const count = await campsCollection.estimatedDocumentCount()
             res.send({ count })
         })
+        app.get('/popularcamp', async(req, res)=> {
+            const result = await campsCollection.find().sort({participators: -1}).limit(6).toArray()
+            res.send(result)
+        })
         // campsCollection end
 
         // feedback start
