@@ -25,6 +25,9 @@ async function run() {
         const mediserveMobilize = client.db('mediserveMobilize')
         const campsCollection = mediserveMobilize.collection('medicalCamps')
         const feedbackCollection = mediserveMobilize.collection('feedback')
+        const upcommingCampCollection = mediserveMobilize.collection('upcommingCamp')
+
+
         // campsCollection start 
         app.get('/camps', async (req, res) => {
             const result = await campsCollection.find().toArray();
@@ -34,15 +37,21 @@ async function run() {
             const count = await campsCollection.estimatedDocumentCount()
             res.send({ count })
         })
-        app.get('/popularcamp', async(req, res)=> {
-            const result = await campsCollection.find().sort({participators: -1}).limit(6).toArray()
+        app.get('/popularcamp', async (req, res) => {
+            const result = await campsCollection.find().sort({ participators: -1 }).limit(6).toArray()
             res.send(result)
         })
         // campsCollection end
+        // upcommingcampsCollection start
+        app.get('/upcommingcamps', async (req, res) => {
+            const result = await upcommingCampCollection.find().toArray();
+            res.send(result)
+        })
+        // upcommingcampsCollection end
 
         // feedback start
         app.get('/feedback', async (req, res) => {
-            const result  = await feedbackCollection.find().sort({time: -1}).toArray();
+            const result = await feedbackCollection.find().sort({ time: -1 }).toArray();
             res.send(result)
         })
         // feedback end
