@@ -3,6 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
+const { log } = require('console');
 require('dotenv').config()
 
 const port = process.env.PORT || 3000
@@ -68,6 +69,13 @@ async function run() {
         })
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
+            res.send(result)
+        })
+        app.get('/users/:email',verifyToken, async (req, res) => {
+            const email = req?.params?.email
+            console.log(email);
+            const query = {email: email}
+            const result = await usersCollection.findOne(query);
             res.send(result)
         })
         // usersCollection end 
