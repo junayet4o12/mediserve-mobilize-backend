@@ -26,12 +26,33 @@ async function run() {
         const campsCollection = mediserveMobilize.collection('medicalCamps')
         const feedbackCollection = mediserveMobilize.collection('feedback')
         const upcommingCampCollection = mediserveMobilize.collection('upcommingCamp')
-
-
+        const usersCollection = mediserveMobilize.collection('users');
+        // usersCollection start
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const axistingUser = await usersCollection.findOne(query);
+            if (axistingUser) {
+                return res.send({ message: ' use already exists' })
+            }
+            const result = await usersCollection.insertOne(user);
+            res.send(result)
+        })
+        app.get('/users',  async (req, res) => {
+            const result = await usersCollection.find().toArray();
+            res.send(result)
+        })
+        // usersCollection end 
         // campsCollection start 
         app.get('/camps', async (req, res) => {
             const result = await campsCollection.find().toArray();
             res.send(result)
+        })
+        app.get('/camps/:campId', async (req, res) => {
+            const campId = req?.params?.campId;
+            const query = { _id: new ObjectId(campId) }
+            const camp = await campsCollection.findOne(query)
+            res.send(camp)
         })
         app.get('/campsamount', async (req, res) => {
             const count = await campsCollection.estimatedDocumentCount()
@@ -41,6 +62,7 @@ async function run() {
             const result = await campsCollection.find().sort({ participators: -1 }).limit(6).toArray()
             res.send(result)
         })
+
         // campsCollection end
         // upcommingcampsCollection start
         app.get('/upcommingcamps', async (req, res) => {
