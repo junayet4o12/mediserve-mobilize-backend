@@ -27,6 +27,7 @@ async function run() {
         const feedbackCollection = mediserveMobilize.collection('feedback')
         const upcommingCampCollection = mediserveMobilize.collection('upcommingCamp')
         const usersCollection = mediserveMobilize.collection('users');
+        const registrationCampCollection = mediserveMobilize.collection('registrationCamp');
         // usersCollection start
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -38,7 +39,7 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result)
         })
-        app.get('/users',  async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
@@ -46,6 +47,18 @@ async function run() {
         // campsCollection start 
         app.get('/camps', async (req, res) => {
             const result = await campsCollection.find().toArray();
+            res.send(result)
+        })
+        app.put('/camps/:campId', async (req, res) => {
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const updatedCamp = {
+                $inc:
+                {
+                    participators: 1
+                },
+            }
+            const result = await campsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
         app.get('/camps/:campId', async (req, res) => {
@@ -77,6 +90,18 @@ async function run() {
             res.send(result)
         })
         // feedback end
+
+        // registrationCampCollection start
+        app.get('/registrationcamps', async (req, res) => {
+            const result = await registrationCampCollection.find().toArray()
+            res.send(result)
+        })
+        app.post('/registrationcamps', async (req, res) => {
+            const registrationCamp = req.body;
+            const result = await registrationCampCollection.insertOne(registrationCamp)
+            res.send(result)
+        })
+        // registrationCampCollection end
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     }
