@@ -76,7 +76,7 @@ async function run() {
             const result = await campsCollection.find().toArray();
             res.send(result)
         })
-        app.put('/camps/:campId', async (req, res) => {
+        app.put('/camps/:campId',verifyToken, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
             const updatedCamp = {
@@ -119,11 +119,11 @@ async function run() {
         // feedback end
 
         // registrationCampCollection start
-        app.get('/registrationcamps', async (req, res) => {
+        app.get('/registrationcamps',verifyToken, async (req, res) => {
             const result = await registrationCampCollection.find().toArray()
             res.send(result)
         })
-        app.post('/registrationcamps', async (req, res) => {
+        app.post('/registrationcamps',verifyToken, async (req, res) => {
             const registrationCamp = req.body;
             const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
