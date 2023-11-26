@@ -103,6 +103,11 @@ async function run() {
             const result = await campsCollection.find().toArray();
             res.send(result)
         })
+        app.post('/camps', verifyToken, async( req, res)=> {
+            const camp = req.body
+            const result = await campsCollection.insertOne(camp);
+            res.send(result)
+        })
         app.put('/camps/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
