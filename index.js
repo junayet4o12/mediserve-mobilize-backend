@@ -108,6 +108,12 @@ async function run() {
             const result = await campsCollection.insertOne(camp);
             res.send(result)
         })
+        app.delete('/delete-camp/:campId', verifyToken, async( req, res)=> {
+            const id = req.params.campId;
+            const query = {_id: new ObjectId(id)}
+            const result = await campsCollection.deleteOne(query);
+            res.send(result)
+        })
         app.put('/camps/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
@@ -121,6 +127,12 @@ async function run() {
             res.send(result)
         })
         app.get('/camps/:campId', async (req, res) => {
+            const campId = req?.params?.campId;
+            const query = { _id: new ObjectId(campId) }
+            const camp = await campsCollection.findOne(query)
+            res.send(camp)
+        })
+        app.get('/campsbyorg/:campId',verifyToken, async (req, res) => {
             const campId = req?.params?.campId;
             const query = { _id: new ObjectId(campId) }
             const camp = await campsCollection.findOne(query)
