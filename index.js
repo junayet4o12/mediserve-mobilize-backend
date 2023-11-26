@@ -67,14 +67,33 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result)
         })
+        app.put('/users/:id',verifyToken, async (req, res) => {
+            
+            const userinfo = req.body;
+            const id = req?.params?.id
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedInfo = {
+                $set: {
+                    name: userinfo.name,
+                    email: userinfo.email,
+                    contactNumber: userinfo.contactNumber,
+                    age: userinfo.age,
+                    country: userinfo.country
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedInfo, options)
+            res.send(result)
+
+        })
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
-        app.get('/users/:email',verifyToken, async (req, res) => {
+        app.get('/users/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email
             console.log(email);
-            const query = {email: email}
+            const query = { email: email }
             const result = await usersCollection.findOne(query);
             res.send(result)
         })
@@ -84,7 +103,7 @@ async function run() {
             const result = await campsCollection.find().toArray();
             res.send(result)
         })
-        app.put('/camps/:campId',verifyToken, async (req, res) => {
+        app.put('/camps/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
             const updatedCamp = {
@@ -101,6 +120,13 @@ async function run() {
             const query = { _id: new ObjectId(campId) }
             const camp = await campsCollection.findOne(query)
             res.send(camp)
+        })
+        app.get('/campsbyemail/:email', async (req, res) => {
+            const email = req?.params?.email;
+            console.log(email);
+            const query = { organizerEmail: email }
+            const camps = await campsCollection.find(query).toArray()
+            res.send(camps)
         })
         app.get('/campsamount', async (req, res) => {
             const count = await campsCollection.estimatedDocumentCount()
@@ -124,14 +150,19 @@ async function run() {
             const result = await feedbackCollection.find().sort({ time: -1 }).toArray();
             res.send(result)
         })
+        app.get('/feedback/:email', verifyToken, async (req, res) => {
+            const query = { organizerEmail: req?.params?.email }
+            const result = await feedbackCollection.find(query).toArray();
+            res.send(result)
+        })
         // feedback end
 
         // registrationCampCollection start
-        app.get('/registrationcamps',verifyToken, async (req, res) => {
+        app.get('/registrationcamps', verifyToken, async (req, res) => {
             const result = await registrationCampCollection.find().toArray()
             res.send(result)
         })
-        app.post('/registrationcamps',verifyToken, async (req, res) => {
+        app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
             const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
