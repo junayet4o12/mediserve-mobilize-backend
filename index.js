@@ -126,6 +126,29 @@ async function run() {
             const result = await campsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
+        app.put('/fullcamp/:campId', verifyToken, async (req, res) => {
+            const camp = req.body;
+
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const options = {upsert: true}
+            const updatedCamp = {
+                $set:
+                {
+                    campName: camp?.campName,
+                    description: camp?.description,
+                    image: camp?.image,
+                    DateAndTime: camp?.DateAndTime,
+                    venueLocation: camp?.venueLocation,
+                    specializedService: camp?.specializedService,
+                    healthcareExpert: camp?.healthcareExpert,
+                    targetAudience: camp?.targetAudience,
+                    benefits: camp?.benefits
+                },
+            }
+            const result = await campsCollection.updateOne(query, updatedCamp, options)
+            res.send(result)
+        })
         app.get('/camps/:campId', async (req, res) => {
             const campId = req?.params?.campId;
             const query = { _id: new ObjectId(campId) }
