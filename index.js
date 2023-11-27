@@ -51,8 +51,21 @@ async function run() {
                     return res.status(401).send({ message: 'unauthrised' })
                 }
                 req.decoded = decoded
+                
                 next()
             })
+        }
+
+        const verifyOrganizer = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const isOrganizer = user?.organizerRole === true
+            if (!isOrganizer) {
+                return res.status(403).send({ message: "forbidden" })
+            }
+
+            next()
         }
         // middlware end
 
@@ -96,6 +109,19 @@ async function run() {
             const query = { email: email }
             const result = await usersCollection.findOne(query);
             res.send(result)
+        })
+        app.get('/user/organizer/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden' })
+            }
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            let organizer = false
+            if (user) {
+                organizer = user?.organizerRole === true
+            }
+            res.send({ organizer })
         })
         // usersCollection end 
         // campsCollection start 
@@ -155,7 +181,7 @@ async function run() {
             const camp = await campsCollection.findOne(query)
             res.send(camp)
         })
-        app.get('/campsbyorg/:campId',verifyToken, async (req, res) => {
+        app.get('/campsbyorg/:campId',verifyToken,verifyOrganizer, async (req, res) => {
             const campId = req?.params?.campId;
             const query = { _id: new ObjectId(campId) }
             const camp = await campsCollection.findOne(query)
@@ -190,7 +216,7 @@ async function run() {
             const result = await feedbackCollection.find().sort({ time: -1 }).toArray();
             res.send(result)
         })
-        app.get('/feedback/:email', verifyToken, async (req, res) => {
+        app.get('/feedback/:email', verifyToken,verifyOrganizer, async (req, res) => {
             const query = { organizerEmail: req?.params?.email }
             const result = await feedbackCollection.find(query).toArray();
             res.send(result)
@@ -198,7 +224,7 @@ async function run() {
         // feedback end
 
         // registrationCampCollection start
-        app.get('/registrationcamps', verifyToken, async (req, res) => {
+        app.get('/registrationcamps', verifyToken,verifyOrganizer, async (req, res) => {
             const result = await registrationCampCollection.find().toArray()
             res.send(result)
         })
