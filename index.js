@@ -151,6 +151,7 @@ async function run() {
             const result = await paymentsCollection.find().toArray()
             res.send(result)
         })
+        
         app.post('/payments/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const paymentdata = req?.body;
@@ -160,13 +161,15 @@ async function run() {
                 $set:
                 {
                     confirmationStatus: 'pending',
-                    paymentStatus: 'paid'
+                    paymentStatus: 'paid',
+                    transactionId: paymentdata?.transactionId
                 },
             }
             const payment = await paymentsCollection.insertOne(paymentdata);
             const updateCamp = await registrationCampCollection.updateOne(query, updatedCamp)
-            res.send({payment, updateCamp})
+            res.send({ payment, updateCamp })
         })
+
         // payment end 
         // campsCollection start 
         app.get('/camps', async (req, res) => {
@@ -208,6 +211,26 @@ async function run() {
             const result = await campsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
+        app.put('/campedit/:campId', verifyToken,verifyOrganizer, async (req, res) => {
+            const data = req.body;
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const registerQuery = { _id: new ObjectId(data?.registerid) }
+            const paymentQuery = { transactionId: data?.transactionId }
+            console.log(query, registerQuery, paymentQuery);
+            const updatedCamp = {
+                $inc:
+                {
+                    participators: -1
+                },
+            }
+            const decParticipants = await campsCollection.updateOne(query, updatedCamp)
+            const deleteRegister = await registrationCampCollection.deleteOne(registerQuery)
+            const deletePayment = await paymentsCollection.deleteOne(paymentQuery)
+
+            res.send({decParticipants, deleteRegister, deletePayment})
+        })
+
         app.put('/fullcamp/:campId', verifyToken, async (req, res) => {
             const camp = req.body;
 
@@ -290,20 +313,32 @@ async function run() {
             const result = await registrationCampCollection.find(query).toArray()
             res.send(result)
         })
+       
         app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
             const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
         })
-        app.delete('/deleteregisteredcamp/:campId', async (req, res) => {
+        app.delete('/deleteregisteredcamp/:campId', verifyToken, async (req, res) => {
             const id = req?.params?.campId;
             const query = { _id: new ObjectId(id) }
             const result = await registrationCampCollection.deleteOne(query)
             res.send(result)
         })
+        app.put('/updateRegistrationcamp/:campId', verifyToken, verifyOrganizer, async (req, res) => {
+            const id = req?.params?.campId;
+            const query = { _id: new ObjectId(id) }
+            const upatedData = {
+                $set: {
+                    confirmationStatus: 'confirmed'
+                }
+            }
+            const result = await registrationCampCollection.updateOne(query, upatedData)
+            res.send(result)
+        })
         // registrationCampCollection end
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     }
     finally {
 
