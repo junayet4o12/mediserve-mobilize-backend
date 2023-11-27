@@ -136,20 +136,36 @@ async function run() {
             const { price } = req.body;
             const amount = parseInt(price * 100)
             console.log(amount);
-            const paymentIntent = await stripe.paymentIntents.create({
+            const payment = await stripe.paymentIntents.create({
                 amount: amount,
                 currency: 'usd',
                 payment_method_types: ["card"],
             })
-            console.log(paymentIntent.client_secret);
+            console.log(payment.client_secret);
             res.send({
-                clientSecret: paymentIntent.client_secret
+                clientSecret: payment.client_secret
             })
         })
 
-        app.get('/payments', async(req, res)=> {
+        app.get('/payments', async (req, res) => {
             const result = await paymentsCollection.find().toArray()
             res.send(result)
+        })
+        app.post('/payments/:campId', verifyToken, async (req, res) => {
+            const id = req.params.campId;
+            const paymentdata = req?.body;
+            console.log('id', id, `camp`, paymentdata);
+            const query = { _id: new ObjectId(id) }
+            const updatedCamp = {
+                $set:
+                {
+                    confirmationStatus: 'pending',
+                    paymentStatus: 'paid'
+                },
+            }
+            const payment = await paymentsCollection.insertOne(paymentdata);
+            const updateCamp = await registrationCampCollection.updateOne(query, updatedCamp)
+            res.send({payment, updateCamp})
         })
         // payment end 
         // campsCollection start 
