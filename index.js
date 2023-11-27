@@ -51,7 +51,7 @@ async function run() {
                     return res.status(401).send({ message: 'unauthrised' })
                 }
                 req.decoded = decoded
-                
+
                 next()
             })
         }
@@ -80,8 +80,8 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result)
         })
-        app.put('/users/:id',verifyToken, async (req, res) => {
-            
+        app.put('/users/:id', verifyToken, async (req, res) => {
+
             const userinfo = req.body;
             const id = req?.params?.id
             const query = { _id: new ObjectId(id) }
@@ -110,6 +110,13 @@ async function run() {
             const result = await usersCollection.findOne(query);
             res.send(result)
         })
+        app.get('/organizers/:email', verifyToken, verifyOrganizer, async (req, res) => {
+            const email = req?.params?.email
+            console.log(email);
+            const query = { email: email }
+            const result = await usersCollection.findOne(query);
+            res.send(result)
+        })
         app.get('/user/organizer/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
@@ -129,14 +136,14 @@ async function run() {
             const result = await campsCollection.find().toArray();
             res.send(result)
         })
-        app.post('/camps', verifyToken, async( req, res)=> {
+        app.post('/camps', verifyToken, async (req, res) => {
             const camp = req.body
             const result = await campsCollection.insertOne(camp);
             res.send(result)
         })
-        app.delete('/delete-camp/:campId', verifyToken, async( req, res)=> {
+        app.delete('/delete-camp/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
-            const query = {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await campsCollection.deleteOne(query);
             res.send(result)
         })
@@ -152,12 +159,24 @@ async function run() {
             const result = await campsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
+        app.put('/campsdec/:campId', verifyToken, async (req, res) => {
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const updatedCamp = {
+                $inc:
+                {
+                    participators: -1
+                },
+            }
+            const result = await campsCollection.updateOne(query, updatedCamp)
+            res.send(result)
+        })
         app.put('/fullcamp/:campId', verifyToken, async (req, res) => {
             const camp = req.body;
 
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
-            const options = {upsert: true}
+            const options = { upsert: true }
             const updatedCamp = {
                 $set:
                 {
@@ -181,7 +200,7 @@ async function run() {
             const camp = await campsCollection.findOne(query)
             res.send(camp)
         })
-        app.get('/campsbyorg/:campId',verifyToken,verifyOrganizer, async (req, res) => {
+        app.get('/campsbyorg/:campId', verifyToken, verifyOrganizer, async (req, res) => {
             const campId = req?.params?.campId;
             const query = { _id: new ObjectId(campId) }
             const camp = await campsCollection.findOne(query)
@@ -216,7 +235,7 @@ async function run() {
             const result = await feedbackCollection.find().sort({ time: -1 }).toArray();
             res.send(result)
         })
-        app.get('/feedback/:email', verifyToken,verifyOrganizer, async (req, res) => {
+        app.get('/feedback/:email', verifyToken, verifyOrganizer, async (req, res) => {
             const query = { organizerEmail: req?.params?.email }
             const result = await feedbackCollection.find(query).toArray();
             res.send(result)
@@ -224,13 +243,25 @@ async function run() {
         // feedback end
 
         // registrationCampCollection start
-        app.get('/registrationcamps', verifyToken,verifyOrganizer, async (req, res) => {
+        app.get('/registrationcamps', verifyToken, verifyOrganizer, async (req, res) => {
             const result = await registrationCampCollection.find().toArray()
+            res.send(result)
+        })
+        app.get('/singleregisteredcamp/:email', verifyToken, async (req, res) => {
+            const email= req.params.email;
+            const query = {registerEmail: email}
+            const result = await registrationCampCollection.find(query).toArray()
             res.send(result)
         })
         app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
             const result = await registrationCampCollection.insertOne(registrationCamp)
+            res.send(result)
+        })
+        app.delete('/deleteregisteredcamp/:campId', async(req, res)=> {
+            const id = req?.params?.campId;
+            const query= {_id: new ObjectId(id)}
+            const result = await registrationCampCollection.deleteOne(query)
             res.send(result)
         })
         // registrationCampCollection end
