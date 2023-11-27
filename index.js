@@ -1,11 +1,10 @@
 const express = require('express')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+require('dotenv').config()
 const app = express()
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
-const { log } = require('console');
-require('dotenv').config()
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const port = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
@@ -29,6 +28,7 @@ async function run() {
         const upcommingCampCollection = mediserveMobilize.collection('upcommingCamp')
         const usersCollection = mediserveMobilize.collection('users');
         const registrationCampCollection = mediserveMobilize.collection('registrationCamp');
+        const paymentsCollection = mediserveMobilize.collection('payments');
 
         // jwt related api start
         app.post('/jwt', async (req, res) => {
@@ -131,6 +131,27 @@ async function run() {
             res.send({ organizer })
         })
         // usersCollection end 
+        // payement start 
+        app.post('/completePayment', verifyToken, async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100)
+            console.log(amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ["card"],
+            })
+            console.log(paymentIntent.client_secret);
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        app.get('/payments', async(req, res)=> {
+            const result = await paymentsCollection.find().toArray()
+            res.send(result)
+        })
+        // payment end 
         // campsCollection start 
         app.get('/camps', async (req, res) => {
             const result = await campsCollection.find().toArray();
@@ -248,8 +269,8 @@ async function run() {
             res.send(result)
         })
         app.get('/singleregisteredcamp/:email', verifyToken, async (req, res) => {
-            const email= req.params.email;
-            const query = {registerEmail: email}
+            const email = req.params.email;
+            const query = { registerEmail: email }
             const result = await registrationCampCollection.find(query).toArray()
             res.send(result)
         })
@@ -258,9 +279,9 @@ async function run() {
             const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
         })
-        app.delete('/deleteregisteredcamp/:campId', async(req, res)=> {
+        app.delete('/deleteregisteredcamp/:campId', async (req, res) => {
             const id = req?.params?.campId;
-            const query= {_id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await registrationCampCollection.deleteOne(query)
             res.send(result)
         })
