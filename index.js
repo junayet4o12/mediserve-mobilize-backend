@@ -29,6 +29,8 @@ async function run() {
         const usersCollection = mediserveMobilize.collection('users');
         const registrationCampCollection = mediserveMobilize.collection('registrationCamp');
         const paymentsCollection = mediserveMobilize.collection('payments');
+        const upcomingCampParticipantCollection = mediserveMobilize.collection('upcomingCampParticipantCollection');
+        const upcomingCampProfessionalCollection = mediserveMobilize.collection('upcomingCampProfessionalCollection');
 
         // jwt related api start
         app.post('/jwt', async (req, res) => {
@@ -381,12 +383,48 @@ async function run() {
             const result = await upcommingCampCollection.find().toArray();
             res.send(result)
         })
+        app.get('/upcommingcamps/:campId', async (req, res) => {
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const result = await upcommingCampCollection.findOne(query)
+            res.send(result)
+        })
         app.post('/upcomingcamps', verifyToken, verifyOrganizer, async (req, res) => {
             const campData = req.body;
             const result = await upcommingCampCollection.insertOne(campData);
             res.send(result);
         })
         // upcommingcampsCollection end
+
+
+
+        // upcomingCampParticipantCollection start
+        app.get('/participantlist', async (req, res) => {
+            const result = await upcomingCampParticipantCollection.find().toArray()
+            res.send(result)
+        })
+        app.post('/participantlist', verifyToken, async (req, res) => {
+            const data = req.body;
+            const result = await upcomingCampParticipantCollection.insertOne(data)
+            res.send(result)
+        })
+        // upcomingCampParticipantCollection end
+
+
+        // upcomingCampProfessionalCollection start
+        app.get('/professionallist', async (req, res) => {
+            const result = await upcomingCampProfessionalCollection.find().toArray()
+            res.send(result)
+        })
+        app.post('/professionallist', verifyToken, verifyProfessional, async (req, res) => {
+            const data = req.body;
+            const result = await upcomingCampProfessionalCollection.insertOne(data)
+            res.send(result)
+        })
+
+        // upcomingCampProfessionalCollection end
+
+
 
         // feedback start
         app.get('/feedback', async (req, res) => {
