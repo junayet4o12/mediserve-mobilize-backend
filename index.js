@@ -67,6 +67,18 @@ async function run() {
 
             next()
         }
+        const verifyProfessional = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const isProfessional = user?.professionalRole === true
+            console.log(isProfessional);
+            if (!isProfessional) {
+                return res.status(403).send({ message: "forbidden" })
+            }
+
+            next()
+        }
         // middlware end
 
         // usersCollection start
@@ -129,6 +141,20 @@ async function run() {
                 organizer = user?.organizerRole === true
             }
             res.send({ organizer })
+        })
+
+        app.get('/user/professional/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden' })
+            }
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            let professional = false
+            if (user) {
+                professional = user?.professionalRole === true
+            }
+            res.send({ professional })
         })
         // usersCollection end 
         // payement start 
