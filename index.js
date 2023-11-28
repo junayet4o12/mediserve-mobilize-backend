@@ -229,6 +229,11 @@ async function run() {
             const updateCamp = await registrationCampCollection.updateOne(query, updatedCamp)
             res.send({ payment, updateCamp })
         })
+        app.get('/campnameid', async(req, res)=> {
+            const projection = {_id: 1, campName: 1};
+            const result = await campsCollection.find({}, {projection}).toArray();
+            res.send(result)
+        })
 
         app.get('/paidcamp', async(req, res)=> {
             const result = await registrationCampCollection.aggregate([
