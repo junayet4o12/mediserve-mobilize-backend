@@ -111,7 +111,7 @@ async function run() {
             res.send(result)
 
         })
-        app.put('/profesdionalusers/:id', verifyToken,verifyProfessional, async (req, res) => {
+        app.put('/profesdionalusers/:id', verifyToken, verifyProfessional, async (req, res) => {
 
             const userinfo = req.body;
             const id = req?.params?.id
@@ -204,14 +204,14 @@ async function run() {
             const result = await paymentsCollection.find().toArray()
             res.send(result)
         })
-        app.get('/paymentsbyemail/:email',verifyToken, async (req, res) => {
+        app.get('/paymentsbyemail/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            const query = {email: email}
+            const query = { email: email }
             console.log(query, 'hit me');
             const result = await paymentsCollection.find(query).toArray()
             res.send(result)
         })
-        
+
         app.post('/payments/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const paymentdata = req?.body;
@@ -229,13 +229,13 @@ async function run() {
             const updateCamp = await registrationCampCollection.updateOne(query, updatedCamp)
             res.send({ payment, updateCamp })
         })
-        app.get('/campnameid', async(req, res)=> {
-            const projection = {_id: 1, campName: 1};
-            const result = await campsCollection.find({}, {projection}).toArray();
+        app.get('/campnameid', async (req, res) => {
+            const projection = { _id: 1, campName: 1 };
+            const result = await campsCollection.find({}, { projection }).toArray();
             res.send(result)
         })
 
-        app.get('/paidcamp', async(req, res)=> {
+        app.get('/paidcamp', async (req, res) => {
             const result = await registrationCampCollection.aggregate([
                 {
                     $lookup: {
@@ -259,7 +259,7 @@ async function run() {
                 //     }
                 // }
             ]).toArray();
-        
+
             res.send(result);
         })
 
@@ -269,7 +269,7 @@ async function run() {
             const result = await campsCollection.find().toArray();
             res.send(result)
         })
-        app.post('/camps', verifyToken, async (req, res) => {
+        app.post('/camps', verifyToken, verifyOrganizer, async (req, res) => {
             const camp = req.body
             const result = await campsCollection.insertOne(camp);
             res.send(result)
@@ -304,7 +304,7 @@ async function run() {
             const result = await campsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
-        app.put('/campedit/:campId', verifyToken,verifyOrganizer, async (req, res) => {
+        app.put('/campedit/:campId', verifyToken, verifyOrganizer, async (req, res) => {
             const data = req.body;
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
@@ -321,7 +321,7 @@ async function run() {
             const deleteRegister = await registrationCampCollection.deleteOne(registerQuery)
             const deletePayment = await paymentsCollection.deleteOne(paymentQuery)
 
-            res.send({decParticipants, deleteRegister, deletePayment})
+            res.send({ decParticipants, deleteRegister, deletePayment })
         })
 
         app.put('/fullcamp/:campId', verifyToken, async (req, res) => {
@@ -381,6 +381,11 @@ async function run() {
             const result = await upcommingCampCollection.find().toArray();
             res.send(result)
         })
+        app.post('/upcomingcamps', verifyToken, verifyOrganizer, async (req, res) => {
+            const campData = req.body;
+            const result = await upcommingCampCollection.insertOne(campData);
+            res.send(result);
+        })
         // upcommingcampsCollection end
 
         // feedback start
@@ -388,7 +393,7 @@ async function run() {
             const result = await feedbackCollection.find().sort({ time: -1 }).toArray();
             res.send(result)
         })
-        app.post('/addfeedback', async(req, res)=> {
+        app.post('/addfeedback', async (req, res) => {
             const body = req.body;
             const result = await feedbackCollection.insertOne(body);
             res.send(result)
@@ -411,7 +416,7 @@ async function run() {
             const result = await registrationCampCollection.find(query).toArray()
             res.send(result)
         })
-       
+
         app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
             const newRegistrationCamp = {
@@ -420,16 +425,16 @@ async function run() {
                 contactInformation: registrationCamp.contactInformation,
                 gender: registrationCamp.gender,
                 address: registrationCamp.address,
-    
+
                 healthInformation: registrationCamp.healthInformation,
-                campObjectId: new ObjectId (registrationCamp.campInfo.campId),
+                campObjectId: new ObjectId(registrationCamp.campInfo.campId),
                 campInfo: registrationCamp.campInfo,
                 registerEmail: registrationCamp.registerEmail,
                 userName: registrationCamp.userName
-                
-    
-    
-    
+
+
+
+
             }
             console.log(registrationCamp, newRegistrationCamp);
             const result = await registrationCampCollection.insertOne(newRegistrationCamp)
@@ -445,18 +450,18 @@ async function run() {
             const id = req?.params?.campId;
             const transactionId = req?.body?.transactionId
             console.log(transactionId);
-                                  
-            const paymentquery = {transactionId: transactionId}
+
+            const paymentquery = { transactionId: transactionId }
             const query = { _id: new ObjectId(id) }
             const upatedData = {
                 $set: {
-                    
+
                     confirmationStatus: 'confirmed'
                 }
             }
             const updateregister = await registrationCampCollection.updateOne(query, upatedData)
             const updatepayment = await paymentsCollection.updateOne(paymentquery, upatedData)
-            res.send({updateregister, updatepayment})
+            res.send({ updateregister, updatepayment })
         })
         // registrationCampCollection end
         // await client.db("admin").command({ ping: 1 });
