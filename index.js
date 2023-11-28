@@ -111,6 +111,26 @@ async function run() {
             res.send(result)
 
         })
+        app.put('/profesdionalusers/:id', verifyToken,verifyProfessional, async (req, res) => {
+
+            const userinfo = req.body;
+            const id = req?.params?.id
+            const query = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedInfo = {
+                $set: {
+                    name: userinfo.name,
+                    email: userinfo.email,
+                    contactNumber: userinfo.contactNumber,
+                    age: userinfo.age,
+                    country: userinfo.country,
+                    medicalSpeciality: userinfo.medicalSpeciality
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedInfo, options)
+            res.send(result)
+
+        })
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
@@ -123,6 +143,13 @@ async function run() {
             res.send(result)
         })
         app.get('/organizers/:email', verifyToken, verifyOrganizer, async (req, res) => {
+            const email = req?.params?.email
+            console.log(email);
+            const query = { email: email }
+            const result = await usersCollection.findOne(query);
+            res.send(result)
+        })
+        app.get('/professionals/:email', verifyToken, verifyProfessional, async (req, res) => {
             const email = req?.params?.email
             console.log(email);
             const query = { email: email }
