@@ -303,8 +303,10 @@ async function run() {
                     participators: -1
                 },
             }
+
+            const upcomeresult = await upcommingCampCollection.updateOne(query, updatedCamp)
             const result = await campsCollection.updateOne(query, updatedCamp)
-            res.send(result)
+            res.send({ result, upcomeresult })
         })
         app.put('/campedit/:campId', verifyToken, verifyOrganizer, async (req, res) => {
             const data = req.body;
@@ -320,10 +322,11 @@ async function run() {
                 },
             }
             const decParticipants = await campsCollection.updateOne(query, updatedCamp)
+            const decupcomeParticipants = await upcommingCampCollection.updateOne(query, updatedCamp)
             const deleteRegister = await registrationCampCollection.deleteOne(registerQuery)
             const deletePayment = await paymentsCollection.deleteOne(paymentQuery)
 
-            res.send({ decParticipants, deleteRegister, deletePayment })
+            res.send({ decParticipants, deleteRegister, deletePayment, decupcomeParticipants })
         })
 
         app.put('/fullcamp/:campId', verifyToken, async (req, res) => {
@@ -409,6 +412,29 @@ async function run() {
             const result = await upcomingCampParticipantCollection.find().toArray()
             res.send(result)
         })
+        app.delete('/deleteupregister/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await upcomingCampParticipantCollection.deleteOne(query)
+            res.send(result)
+        })
+        app.put('/participantlist/:query', async (req, res) => {
+            const query = req.params.query;
+            const updatequery = { _id: new ObjectId(query) }
+            const updatedCamp = {
+                $set:
+                {
+                    register: true
+                },
+            }
+            const result = await upcomingCampParticipantCollection.updateOne(updatequery, updatedCamp)
+
+            res.send(result)
+        })
+        app.get('/participantlist', async (req, res) => {
+            const result = await upcomingCampParticipantCollection.find().toArray()
+            res.send(result)
+        })
         app.get('/participantlist/:query', verifyToken, verifyOrganizer, async (req, res) => {
             const searchquery = req.params.query;
             const query = { queryNumber: searchquery };
@@ -422,7 +448,8 @@ async function run() {
             const updatedCamp = {
                 $inc:
                 {
-                    participators: 1
+                    participators: 1,
+                    interestedParticipators: 1
                 },
             }
             const upcomingupdate = await upcommingCampCollection.updateOne(query, updatedCamp)
@@ -493,25 +520,9 @@ async function run() {
 
         app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
-            const newRegistrationCamp = {
-                registerName: registrationCamp?.registerName,
-                age: registrationCamp.age,
-                contactInformation: registrationCamp.contactInformation,
-                gender: registrationCamp.gender,
-                address: registrationCamp.address,
 
-                healthInformation: registrationCamp.healthInformation,
-                campObjectId: new ObjectId(registrationCamp.campInfo.campId),
-                campInfo: registrationCamp.campInfo,
-                registerEmail: registrationCamp.registerEmail,
-                userName: registrationCamp.userName
-
-
-
-
-            }
-            console.log(registrationCamp, newRegistrationCamp);
-            const result = await registrationCampCollection.insertOne(newRegistrationCamp)
+            console.log(registrationCamp);
+            const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
         })
         app.delete('/deleteregisteredcamp/:campId', verifyToken, async (req, res) => {
