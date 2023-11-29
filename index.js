@@ -389,6 +389,12 @@ async function run() {
             const result = await upcommingCampCollection.findOne(query)
             res.send(result)
         })
+        app.get('/manageupcommingcamps/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { organizerEmail: email }
+            const result = await upcommingCampCollection.find(query).toArray()
+            res.send(result)
+        })
         app.post('/upcomingcamps', verifyToken, verifyOrganizer, async (req, res) => {
             const campData = req.body;
             const result = await upcommingCampCollection.insertOne(campData);
@@ -403,10 +409,25 @@ async function run() {
             const result = await upcomingCampParticipantCollection.find().toArray()
             res.send(result)
         })
+        app.get('/participantlist/:query', verifyToken, verifyOrganizer, async (req, res) => {
+            const searchquery = req.params.query;
+            const query = { queryNumber: searchquery };
+
+            const result = await upcomingCampParticipantCollection.find(query).toArray()
+            res.send(result)
+        })
         app.post('/participantlist', verifyToken, async (req, res) => {
             const data = req.body;
+            const query = { queryNumber: data.queryNumber }
+            const updatedCamp = {
+                $inc:
+                {
+                    participators: 1
+                },
+            }
+            const upcomingupdate = await upcommingCampCollection.updateOne(query, updatedCamp)
             const result = await upcomingCampParticipantCollection.insertOne(data)
-            res.send(result)
+            res.send({ result, upcomingupdate })
         })
         // upcomingCampParticipantCollection end
 
@@ -416,10 +437,25 @@ async function run() {
             const result = await upcomingCampProfessionalCollection.find().toArray()
             res.send(result)
         })
+        app.get('/professionallist/:query', verifyToken, verifyOrganizer, async (req, res) => {
+            const searchquery = req.params.query;
+            const query = { queryNumber: searchquery };
+
+            const result = await upcomingCampProfessionalCollection.find(query).toArray()
+            res.send(result)
+        })
         app.post('/professionallist', verifyToken, verifyProfessional, async (req, res) => {
             const data = req.body;
+            const query = { queryNumber: data.queryNumber }
+            const updatedCamp = {
+                $inc:
+                {
+                    professionals: 1
+                },
+            }
+            const upcomingupdate = await upcommingCampCollection.updateOne(query, updatedCamp)
             const result = await upcomingCampProfessionalCollection.insertOne(data)
-            res.send(result)
+            res.send({ result, upcomingupdate })
         })
 
         // upcomingCampProfessionalCollection end
@@ -444,7 +480,7 @@ async function run() {
         // feedback end
 
         // registrationCampCollection start
-        app.get('/registrationcamps', verifyToken, verifyOrganizer, async (req, res) => {
+        app.get('/registrationcamps', async (req, res) => {
             const result = await registrationCampCollection.find().toArray()
             res.send(result)
         })
