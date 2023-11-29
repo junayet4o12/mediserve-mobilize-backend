@@ -24,6 +24,7 @@ async function run() {
     try {
         const mediserveMobilize = client.db('mediserveMobilize')
         const campsCollection = mediserveMobilize.collection('medicalCamps')
+        const popularcampsCollection = mediserveMobilize.collection('popularcamps')
         const feedbackCollection = mediserveMobilize.collection('feedback')
         const upcommingCampCollection = mediserveMobilize.collection('upcommingCamp')
         const usersCollection = mediserveMobilize.collection('users');
@@ -276,6 +277,34 @@ async function run() {
             const result = await campsCollection.insertOne(camp);
             res.send(result)
         })
+        app.post('/campsfromupcoming', verifyToken, verifyOrganizer, async (req, res) => {
+            const camp = req.body
+            const newCamp = {
+                _id: new ObjectId(camp?._id),
+                campName: camp?.campName,
+                description: camp?.description,
+                image: camp?.image,
+                campFees: camp?.campFees,
+                DateAndTime: camp?.DateAndTime,
+                venueLocation: camp?.venueLocation,
+                specializedService: camp?.specializedService,
+                healthcareExpert: camp?.healthcareExpert,
+                targetAudience: camp?.targetAudience,
+                participators: camp?.participators,
+                professionals: camp?.professionals,
+                queryNumber: camp?.queryNumber,
+                benefits: camp?.benefits,
+                organizerEmail: camp?.organizerEmail,
+                interestedParticipators: camp?.interestedParticipators,
+            }
+            console.log(newCamp);
+            const query = {_id: new ObjectId(camp?._id)}
+            const deleteupcoming = await upcommingCampCollection.deleteOne(query)
+
+            const result = await campsCollection.insertOne(newCamp);
+            const result2 = await upcommingCampCollection.insertOne(newCamp);
+            res.send({result,result2, deleteupcoming})
+        })
         app.delete('/delete-camp/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
@@ -471,6 +500,13 @@ async function run() {
             const result = await upcomingCampProfessionalCollection.find(query).toArray()
             res.send(result)
         })
+        app.get('/professionallisting/:id',  async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId (id) };
+
+            const result = await upcomingCampProfessionalCollection.findOne(query)
+            res.send(result)
+        })
         app.post('/professionallist', verifyToken, verifyProfessional, async (req, res) => {
             const data = req.body;
             const query = { queryNumber: data.queryNumber }
@@ -483,6 +519,29 @@ async function run() {
             const upcomingupdate = await upcommingCampCollection.updateOne(query, updatedCamp)
             const result = await upcomingCampProfessionalCollection.insertOne(data)
             res.send({ result, upcomingupdate })
+        })
+        app.put('/professionallistupdate/:id', async (req, res) => {
+            const name = req.body;
+            console.log(name);
+            const id = req.params.id;
+            const id2 = req.body.campid
+            const query = { _id: new ObjectId(id) }
+            const query2 = { _id: new ObjectId(id2) }
+            console.log(query, query2, req.body.professionalName);
+
+            const updatedData = {
+                $set: {
+                    confirmation: true
+                }
+            }
+            const updatedData2 = {
+                $set: {
+                    healthcareExpert: req.body.professionalName
+                }
+            }
+            const updateparticipants = await upcomingCampProfessionalCollection.updateOne(query, updatedData)
+            const updateparticipants2 = await upcommingCampCollection.updateOne(query2, updatedData2)
+            res.send({ updateparticipants, updateparticipants2 })
         })
 
         // upcomingCampProfessionalCollection end
