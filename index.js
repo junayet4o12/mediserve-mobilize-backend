@@ -302,7 +302,7 @@ async function run() {
             const deleteupcoming = await upcommingCampCollection.deleteOne(query)
 
             const result = await campsCollection.insertOne(newCamp);
-            const result2 = await upcommingCampCollection.insertOne(newCamp);
+            const result2 = await popularcampsCollection.insertOne(newCamp);
             res.send({ result, result2, deleteupcoming })
         })
         app.delete('/delete-camp/:campId', verifyToken, async (req, res) => {
@@ -321,6 +321,7 @@ async function run() {
                 },
             }
             const result = await campsCollection.updateOne(query, updatedCamp)
+            const result2 = await popularcampsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
         app.put('/campsdec/:campId', verifyToken, async (req, res) => {
@@ -412,6 +413,14 @@ async function run() {
 
         // campsCollection end
 
+        // popularcampsCollection start 
+        app.get('/popularcamps', async (req, res) => {
+            const result = await popularcampsCollection.find().toArray()
+            res.send(result)
+        })  
+        // popularcampsCollection end 
+
+
 
         // upcommingcampsCollection start
         app.get('/upcommingcamps', async (req, res) => {
@@ -464,7 +473,7 @@ async function run() {
             const result3 = await upcomingCampProfessionalCollection.deleteMany(query2)
             const result4 = await registrationCampCollection.deleteMany(query2)
             const result5 = await paymentsCollection.deleteMany(query2)
-            res.send({result, result2, result3, result4, result5})
+            res.send({ result, result2, result3, result4, result5 })
         })
         app.post('/upcomingcamps', verifyToken, verifyOrganizer, async (req, res) => {
             const campData = req.body;
@@ -532,6 +541,20 @@ async function run() {
             const result = await upcomingCampProfessionalCollection.find().toArray()
             res.send(result)
         })
+        app.get('/getacceptedCamp/:email', async (req, res) => {
+            const query = { professionalEmail: req.params.email }
+            queryCriteria = {
+                $and: [
+                    { professionalEmail: req.params.email },
+                    { confirmation: true }
+                ]
+            };
+            const result = await upcomingCampProfessionalCollection.find(queryCriteria).toArray()
+            res.send(result)
+        })
+
+
+
         app.get('/professionallist/:query', verifyToken, verifyOrganizer, async (req, res) => {
             const searchquery = req.params.query;
             const query = { queryNumber: searchquery };
