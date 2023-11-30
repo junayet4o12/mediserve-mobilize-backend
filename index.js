@@ -303,6 +303,7 @@ async function run() {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
             const result = await campsCollection.deleteOne(query);
+            const result2 = await popularcampsCollection.deleteOne(query);
             res.send(result)
         })
         app.put('/camps/:campId', verifyToken, async (req, res) => {
