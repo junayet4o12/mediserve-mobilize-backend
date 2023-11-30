@@ -316,7 +316,7 @@ async function run() {
                 },
             }
             const result = await campsCollection.updateOne(query, updatedCamp)
-            const result2 = await popularcampsCollection.updateOne(query, updatedCamp)
+            // const result2 = await popularcampsCollection.updateOne(query, updatedCamp)
             res.send(result)
         })
         app.put('/campsdec/:campId', verifyToken, async (req, res) => {
@@ -408,9 +408,25 @@ async function run() {
 
         // popularcampsCollection start 
         app.get('/popularcamps', async (req, res) => {
-            const result = await popularcampsCollection.find().toArray()
+
+            const result = await popularcampsCollection.aggregate([
+                {
+                    $lookup: {
+                        from: 'medicalCamps',
+                        localField: '_id',
+                        foreignField: '_id',
+                        as: 'popularCamps'
+                    }
+                },
+                {
+                    $unwind: '$popularCamps'
+                },
+                {
+                    $replaceRoot: { newRoot: '$popularCamps' }
+                }
+            ]).toArray();
             res.send(result)
-        })  
+        })
         // popularcampsCollection end 
 
 
