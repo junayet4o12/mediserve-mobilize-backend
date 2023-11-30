@@ -140,21 +140,18 @@ async function run() {
         })
         app.get('/users/:email', verifyToken, async (req, res) => {
             const email = req?.params?.email
-            console.log(email);
             const query = { email: email }
             const result = await usersCollection.findOne(query);
             res.send(result)
         })
         app.get('/organizers/:email', verifyToken, verifyOrganizer, async (req, res) => {
             const email = req?.params?.email
-            console.log(email);
             const query = { email: email }
             const result = await usersCollection.findOne(query);
             res.send(result)
         })
         app.get('/professionals/:email', verifyToken, verifyProfessional, async (req, res) => {
             const email = req?.params?.email
-            console.log(email);
             const query = { email: email }
             const result = await usersCollection.findOne(query);
             res.send(result)
@@ -210,7 +207,6 @@ async function run() {
         app.get('/paymentsbyemail/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
-            console.log(query, 'hit me');
             const result = await paymentsCollection.find(query).toArray()
             res.send(result)
         })
@@ -218,7 +214,6 @@ async function run() {
         app.post('/payments/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
             const paymentdata = req?.body;
-            console.log('id', id, `camp`, paymentdata);
             const query = { _id: new ObjectId(id) }
             const updatedCamp = {
                 $set:
@@ -297,7 +292,6 @@ async function run() {
                 organizerEmail: camp?.organizerEmail,
                 interestedParticipators: camp?.interestedParticipators,
             }
-            console.log(newCamp);
             const query = { _id: new ObjectId(camp?._id) }
             const deleteupcoming = await upcommingCampCollection.deleteOne(query)
 
@@ -344,7 +338,6 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const registerQuery = { _id: new ObjectId(data?.registerid) }
             const paymentQuery = { transactionId: data?.transactionId }
-            console.log(query, registerQuery, paymentQuery);
             const updatedCamp = {
                 $inc:
                 {
@@ -397,7 +390,6 @@ async function run() {
         })
         app.get('/campsbyemail/:email', async (req, res) => {
             const email = req?.params?.email;
-            console.log(email);
             const query = { organizerEmail: email }
             const camps = await campsCollection.find(query).toArray()
             res.send(camps)
@@ -437,7 +429,6 @@ async function run() {
             const id = req.params.campId;
             const camp = req.body;
             const query = { _id: new ObjectId(id) }
-            console.log(camp, id);
             const updatedCamp = {
                 $set:
                 {
@@ -467,7 +458,6 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const query2 = { queryNumber: camp?.queryNumber }
-            console.log(query, query2);
             const result = await upcommingCampCollection.deleteOne(query)
             const result2 = await upcomingCampParticipantCollection.deleteMany(query2)
             const result3 = await upcomingCampProfessionalCollection.deleteMany(query2)
@@ -584,12 +574,10 @@ async function run() {
         })
         app.put('/professionallistupdate/:id', async (req, res) => {
             const name = req.body;
-            console.log(name);
             const id = req.params.id;
             const id2 = req.body.campid
             const query = { _id: new ObjectId(id) }
             const query2 = { _id: new ObjectId(id2) }
-            console.log(query, query2, req.body.professionalName);
 
             const updatedData = {
                 $set: {
@@ -642,7 +630,6 @@ async function run() {
         app.post('/registrationcamps', verifyToken, async (req, res) => {
             const registrationCamp = req.body;
 
-            console.log(registrationCamp);
             const result = await registrationCampCollection.insertOne(registrationCamp)
             res.send(result)
         })
