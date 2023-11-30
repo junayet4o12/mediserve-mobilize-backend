@@ -298,12 +298,12 @@ async function run() {
                 interestedParticipators: camp?.interestedParticipators,
             }
             console.log(newCamp);
-            const query = {_id: new ObjectId(camp?._id)}
+            const query = { _id: new ObjectId(camp?._id) }
             const deleteupcoming = await upcommingCampCollection.deleteOne(query)
 
             const result = await campsCollection.insertOne(newCamp);
             const result2 = await upcommingCampCollection.insertOne(newCamp);
-            res.send({result,result2, deleteupcoming})
+            res.send({ result, result2, deleteupcoming })
         })
         app.delete('/delete-camp/:campId', verifyToken, async (req, res) => {
             const id = req.params.campId;
@@ -368,6 +368,7 @@ async function run() {
                 $set:
                 {
                     campName: camp?.campName,
+                    campFees: camp?.campFees,
                     description: camp?.description,
                     image: camp?.image,
                     DateAndTime: camp?.DateAndTime,
@@ -410,6 +411,8 @@ async function run() {
         })
 
         // campsCollection end
+
+
         // upcommingcampsCollection start
         app.get('/upcommingcamps', async (req, res) => {
             const result = await upcommingCampCollection.find().toArray();
@@ -421,11 +424,47 @@ async function run() {
             const result = await upcommingCampCollection.findOne(query)
             res.send(result)
         })
+        app.put('/updateupcommingcamps/:campId', verifyToken, verifyOrganizer, async (req, res) => {
+            const id = req.params.campId;
+            const camp = req.body;
+            const query = { _id: new ObjectId(id) }
+            console.log(camp, id);
+            const updatedCamp = {
+                $set:
+                {
+                    campName: camp?.campName,
+                    campFees: camp?.campFees,
+                    description: camp?.description,
+                    image: camp?.image,
+                    DateAndTime: camp?.DateAndTime,
+                    venueLocation: camp?.venueLocation,
+                    specializedService: camp?.specializedService,
+                    healthcareExpert: camp?.healthcareExpert,
+                    targetAudience: camp?.targetAudience,
+                    benefits: camp?.benefits
+                },
+            }
+            const result = await upcommingCampCollection.updateOne(query, updatedCamp)
+            res.send(result)
+        })
         app.get('/manageupcommingcamps/:email', async (req, res) => {
             const email = req.params.email;
             const query = { organizerEmail: email }
             const result = await upcommingCampCollection.find(query).toArray()
             res.send(result)
+        })
+        app.put('/deleteupcoming/:id', async (req, res) => {
+            const camp = req?.body
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const query2 = { queryNumber: camp?.queryNumber }
+            console.log(query, query2);
+            const result = await upcommingCampCollection.deleteOne(query)
+            const result2 = await upcomingCampParticipantCollection.deleteMany(query2)
+            const result3 = await upcomingCampProfessionalCollection.deleteMany(query2)
+            const result4 = await registrationCampCollection.deleteMany(query2)
+            const result5 = await paymentsCollection.deleteMany(query2)
+            res.send({result, result2, result3, result4, result5})
         })
         app.post('/upcomingcamps', verifyToken, verifyOrganizer, async (req, res) => {
             const campData = req.body;
@@ -500,9 +539,9 @@ async function run() {
             const result = await upcomingCampProfessionalCollection.find(query).toArray()
             res.send(result)
         })
-        app.get('/professionallisting/:id',  async (req, res) => {
+        app.get('/professionallisting/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: new ObjectId (id) };
+            const query = { _id: new ObjectId(id) };
 
             const result = await upcomingCampProfessionalCollection.findOne(query)
             res.send(result)
